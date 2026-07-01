@@ -318,11 +318,13 @@ app.get('/api/auth/me', auth, async (req, res) => {
   }
 });
 
+const mapClient = (row) => ({ id: row.id, userId: row.userid, name: row.name, business: row.business, phone: row.phone, email: row.email, gstin: row.gstin, createdAt: row.createdat });
+
 // Clients (Protected)
 app.get('/api/clients', auth, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM clients WHERE userId = $1 ORDER BY createdAt DESC', [req.user.id]);
-    res.json(result.rows);
+    res.json(result.rows.map(mapClient));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -335,7 +337,7 @@ app.post('/api/clients', auth, async (req, res) => {
       'INSERT INTO clients (userId, name, business, phone, email, gstin) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
       [req.user.id, name, business, phone, email, gstin]
     );
-    res.json(insertResult.rows[0]);
+    res.json(mapClient(insertResult.rows[0]));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -348,7 +350,7 @@ app.put('/api/clients/:id', auth, async (req, res) => {
       'UPDATE clients SET name = $1, business = $2, phone = $3, email = $4, gstin = $5 WHERE id = $6 AND userId = $7 RETURNING *',
       [name, business, phone, email, gstin, req.params.id, req.user.id]
     );
-    res.json(updateResult.rows[0]);
+    res.json(mapClient(updateResult.rows[0]));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -370,11 +372,13 @@ app.post('/api/clients/delete/:id', auth, async (req, res) => {
   }
 });
 
+const mapDeadline = (row) => ({ id: row.id, userId: row.userid, clientName: row.clientname, clientPhone: row.clientphone, type: row.type, dueDate: row.duedate, status: row.status, createdAt: row.createdat });
+
 // Deadlines (Protected)
 app.get('/api/deadlines', auth, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM deadlines WHERE userId = $1 ORDER BY dueDate ASC', [req.user.id]);
-    res.json(result.rows);
+    res.json(result.rows.map(mapDeadline));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -387,7 +391,7 @@ app.post('/api/deadlines', auth, async (req, res) => {
       'INSERT INTO deadlines (userId, clientName, clientPhone, type, dueDate, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
       [req.user.id, clientName, clientPhone, type, dueDate, status]
     );
-    res.json(insertResult.rows[0]);
+    res.json(mapDeadline(insertResult.rows[0]));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -400,7 +404,7 @@ app.put('/api/deadlines/:id', auth, async (req, res) => {
       'UPDATE deadlines SET status = $1, dueDate = $2 WHERE id = $3 AND userId = $4 RETURNING *',
       [status, dueDate, req.params.id, req.user.id]
     );
-    res.json(updateResult.rows[0]);
+    res.json(mapDeadline(updateResult.rows[0]));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -415,11 +419,13 @@ app.post('/api/deadlines/delete/:id', auth, async (req, res) => {
   }
 });
 
+const mapDocument = (row) => ({ id: row.id, userId: row.userid, clientName: row.clientname, business: row.business, pendingCount: row.pendingcount, docs: row.docs, createdAt: row.createdat });
+
 // Documents (Protected)
 app.get('/api/documents', auth, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM documents WHERE userId = $1 ORDER BY createdAt DESC', [req.user.id]);
-    res.json(result.rows);
+    res.json(result.rows.map(mapDocument));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -432,7 +438,7 @@ app.post('/api/documents', auth, async (req, res) => {
       'INSERT INTO documents (userId, clientName, business, pendingCount, docs) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [req.user.id, clientName, business, pendingCount, JSON.stringify(docs)]
     );
-    res.json(insertResult.rows[0]);
+    res.json(mapDocument(insertResult.rows[0]));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -445,17 +451,19 @@ app.put('/api/documents/:id', auth, async (req, res) => {
       'UPDATE documents SET docs = $1, pendingCount = $2 WHERE id = $3 AND userId = $4 RETURNING *',
       [JSON.stringify(docs), pendingCount, req.params.id, req.user.id]
     );
-    res.json(updateResult.rows[0]);
+    res.json(mapDocument(updateResult.rows[0]));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
+const mapReminder = (row) => ({ id: row.id, userId: row.userid, clientName: row.clientname, clientPhone: row.clientphone, clientEmail: row.clientemail, deadlineType: row.deadlinetype, message: row.message, sendMethod: row.sendmethod, status: row.status, createdAt: row.createdat });
+
 // Reminders (Protected)
 app.get('/api/reminders', auth, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM reminders WHERE userId = $1 ORDER BY createdAt DESC', [req.user.id]);
-    res.json(result.rows);
+    res.json(result.rows.map(mapReminder));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -472,6 +480,7 @@ app.post('/api/reminders/send', auth, async (req, res) => {
       return res.status(400).json({ message: 'Client phone is required to send SMS reminder' });
     }
     
+    let emailStatus = '';
     if (sendMethod === 'email' || sendMethod === 'both') {
       if (clientEmail) {
         const htmlContent = `
@@ -483,7 +492,12 @@ app.post('/api/reminders/send', auth, async (req, res) => {
             <p style="font-size: 12px; color: #888;">This is an automated reminder sent via CA Saathi Practice Management.</p>
           </div>
         `;
-        await sendEmail(clientEmail, clientName || 'Client', subject || 'Important Reminder', htmlContent);
+        try {
+          await sendEmail(clientEmail, clientName || 'Client', subject || 'Important Reminder', htmlContent);
+          emailStatus = 'Email Sent';
+        } catch (e) {
+          emailStatus = 'Email Failed';
+        }
       }
     }
 
@@ -501,15 +515,15 @@ app.post('/api/reminders/send', auth, async (req, res) => {
     }
     
     try {
-      await pool.query(
-        'INSERT INTO reminders (userId, clientName, clientEmail, clientPhone, deadlineType, message, status) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        [req.user.id, clientName, clientEmail, clientPhone, deadlineType, message, 'Sent']
+      const insertResult = await pool.query(
+        'INSERT INTO reminders (userId, clientName, clientEmail, clientPhone, deadlineType, message, sendMethod, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+        [req.user.id, clientName, clientEmail || null, clientPhone || null, deadlineType, message, sendMethod, smsStatus === 'SMS Sent' || emailStatus === 'Email Sent' ? 'Sent' : 'Failed']
       );
+      res.json(mapReminder(insertResult.rows[0]));
     } catch (e) {
       console.warn("Failed to log reminder to PG", e);
+      res.status(500).json({ message: 'Reminder sent but failed to log' });
     }
-
-    res.json({ message: 'Reminder sent successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
