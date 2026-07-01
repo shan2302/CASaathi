@@ -589,6 +589,50 @@ app.post('/api/storage/upload', auth, async (req, res) => {
   }
 });
 
+app.get('/api/migrate-now', async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    const MONGO_URI = "mongodb+srv://shan230205:t3b8t9P2S1qj@cluster0.z2g7d.mongodb.net/ca_saathi?retryWrites=true&w=majority";
+    await mongoose.connect(MONGO_URI);
+    
+    const clientSchema = new mongoose.Schema({
+      userId: { type: String, required: true },
+      name: { type: String, required: true },
+      business: { type: String, default: '-' },
+      phone: { type: String, default: '-' },
+      email: { type: String, default: '-' },
+      gstin: { type: String, default: '-' },
+      createdAt: { type: Date, default: Date.now }
+    });
+    const ClientModel = mongoose.models.Client || mongoose.model('Client', clientSchema);
+    
+    const userId = '18fdfbc0-47e2-4c3f-a522-ec9dc4c1d71d';
+    const result = await pool.query("SELECT * FROM clients WHERE userId = $1", [userId]);
+    const pgClients = result.rows;
+    
+    let migrated = 0;
+    for (const c of pgClients) {
+      const exists = await ClientModel.findOne({ userId, name: c.name });
+      if (!exists) {
+        const newC = new ClientModel({
+          userId,
+          name: c.name,
+          business: c.business,
+          phone: c.phone,
+          email: c.email,
+          gstin: c.gstin,
+          createdAt: c.createdat
+        });
+        await newC.save();
+        migrated++;
+      }
+    }
+    res.json({ success: true, migrated, total: pgClients.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(process.env.PORT || 3000, () => {
   console.log('Serverless Express API (PG) initialized');
 });
