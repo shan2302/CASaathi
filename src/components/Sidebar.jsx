@@ -4,7 +4,7 @@ import { LayoutDashboard, Users, CalendarDays, BellRing, FileText, Settings } fr
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
 
-export function Sidebar() {
+export function Sidebar({ isOpen, onClose }) {
   const { settings } = useSettings();
   const { user } = useAuth();
 
@@ -18,7 +18,9 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="sidebar" style={{ position: 'relative', height: '100vh', borderRight: 'none' }}>
+    <>
+      {isOpen && <div className="sidebar-overlay show-on-mobile" onClick={onClose}></div>}
+      <aside className={`sidebar ${isOpen ? 'mobile-open' : ''}`} style={{ position: 'relative', height: '100vh', borderRight: 'none' }}>
       
       {/* Logo Section */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1.5rem', marginBottom: '1rem' }}>
@@ -66,5 +68,6 @@ export function Sidebar() {
       </div>
       
     </aside>
+    </>
   );
 }

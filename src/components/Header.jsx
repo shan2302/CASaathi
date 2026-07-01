@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, ChevronDown, User, LogOut, CalendarDays } from 'lucide-react';
+import { Search, Bell, ChevronDown, User, LogOut, CalendarDays, Menu } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useNavigate, Link } from 'react-router-dom';
 
-export function Header() {
+export function Header({ onMenuClick }) {
   const { settings } = useSettings();
   const { user, logout } = useAuth();
   const { deadlines } = useData();
@@ -39,8 +39,21 @@ export function Header() {
 
   return (
     <header className="header">
+      {/* Mobile Menu Button */}
+      <button 
+        className="show-on-mobile"
+        onClick={onMenuClick}
+        style={{ 
+          display: 'none', 
+          background: 'none', border: 'none', cursor: 'pointer', 
+          color: 'var(--text-primary)', padding: '0.5rem', marginRight: '0.5rem' 
+        }}
+      >
+        <Menu size={24} />
+      </button>
+
       {/* Left side: Firm Name */}
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="hide-on-mobile" style={{ display: 'flex', flexDirection: 'column' }}>
         <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.05em' }}>FIRM</span>
         <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>{user?.firmName || settings.firmName}</span>
       </div>

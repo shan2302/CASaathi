@@ -621,3 +621,86 @@ input:checked + .slider:before {
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+  /* Hide specific elements on mobile */
+  .hide-on-mobile {
+    display: none !important;
+  }
+  
+  .show-on-mobile {
+    display: flex !important;
+  }
+
+  /* Auth Card Adjustments */
+  .auth-card {
+    padding: 1.5rem !important;
+    margin: 1rem !important;
+    width: 100% !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+
+  /* Grid Layouts Stack Vertically */
+  .docs-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Tables horizontally scrollable */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Content Area */
+  .content-area {
+    padding: 1rem !important;
+  }
+  
+  /* Sidebar Mobile Layout */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -250px;
+    height: 100vh;
+    z-index: 200;
+    transition: left 0.3s ease-in-out;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+  }
+  .sidebar.mobile-open {
+    left: 0;
+  }
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+  }
+  
+  /* Header Adjustments */
+  .header {
+    padding: 0 1rem !important;
+  }
+  
+  /* Modal Adjustments */
+  .modal-content {
+    margin: 1rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-header, .modal-footer, .modal-body {
+    padding: 1rem !important;
+  }
+  
+  /* Make typography slightly smaller */
+  .page-title {
+    font-size: 1.5rem;
+  }
+}
