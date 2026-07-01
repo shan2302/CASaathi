@@ -62,12 +62,22 @@ export function DataProvider({ children }) {
   };
 
   const addClient = async (newClientData, initialDeadlineData) => {
+    // Optimistic UI Update: Create a temporary ID and add it immediately
+    const tempClientId = 'temp_' + Date.now();
+    const optimisticClient = { id: tempClientId, ...newClientData, createdAt: new Date().toISOString() };
+    
+    setClients(prev => [optimisticClient, ...prev]);
+
     try {
       // 1. Save Client
       const clientRes = await axios.post('/api/clients', newClientData);
       const savedClient = clientRes.data;
-      setClients(prev => [savedClient, ...prev]);
       
+      // Replace optimistic client with the real one from DB
+      setClients(prev => prev.map(c => c.id === tempClientId ? savedClient : c));
+      
+      const promises = [];
+
       // 2. Save custom initial deadline for this client
       if (initialDeadlineData && initialDeadlineData.type && initialDeadlineData.dueDate) {
         const deadlinePayload = {
@@ -77,8 +87,11 @@ export function DataProvider({ children }) {
           dueDate: initialDeadlineData.dueDate,
           status: calculateStatus(initialDeadlineData.dueDate)
         };
-        const deadlineRes = await axios.post('/api/deadlines', deadlinePayload);
-        setDeadlines(prev => [deadlineRes.data, ...prev]);
+        promises.push(
+          axios.post('/api/deadlines', deadlinePayload).then(res => {
+            setDeadlines(prev => [res.data, ...prev]);
+          })
+        );
       }
 
       // 3. Save dummy documents for this client
@@ -93,11 +106,20 @@ export function DataProvider({ children }) {
           { name: 'Purchase Report', status: 'Pending' },
         ]
       };
-      const docRes = await axios.post('/api/documents', docPayload);
-      setDocuments(prev => [docRes.data, ...prev]);
+      
+      promises.push(
+        axios.post('/api/documents', docPayload).then(res => {
+          setDocuments(prev => [res.data, ...prev]);
+        })
+      );
+
+      // Execute Deadline and Document inserts simultaneously
+      await Promise.all(promises);
       
     } catch (err) {
       console.error("Error adding client:", err);
+      // Revert optimistic update if the initial client insert failed
+      setClients(prev => prev.filter(c => c.id !== tempClientId));
     }
   };
 
