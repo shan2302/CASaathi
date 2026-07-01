@@ -43,6 +43,15 @@ const pool = new pg.Pool({
   connectionTimeoutMillis: 5000,
 });
 
+app.get('/api/debug/db', async (req, res) => {
+  try {
+    const host = pool.options.host || (pool.options.connectionString ? pool.options.connectionString.split('@')[1].split('/')[0] : 'unknown');
+    res.json({ host, dbUrlStart: connectionString.substring(0, 20) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 
 pool.on('error', (err) => {
