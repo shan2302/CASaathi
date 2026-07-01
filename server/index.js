@@ -594,7 +594,7 @@ app.post('/api/storage/upload', auth, async (req, res) => {
 app.get('/api/migrate-now', async (req, res) => {
   try {
     const mongoose = require('mongoose');
-    const MONGO_URI = "mongodb+srv://shan230205:t3b8t9P2S1qj@cluster0.z2g7d.mongodb.net/ca_saathi?retryWrites=true&w=majority";
+    const MONGO_URI = process.env.MONGO_URI;
     await mongoose.connect(MONGO_URI);
     
     const clientSchema = new mongoose.Schema({
