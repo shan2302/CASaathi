@@ -30,7 +30,7 @@ export function DataProvider({ children }) {
       try {
         const timestamp = Date.now();
         const [clientsRes, deadlinesRes, docsRes] = await Promise.all([
-          axios.get(`/api/clients?t=${timestamp}`),
+          axios.get(`/api/clients-live?t=${timestamp}`),
           axios.get(`/api/deadlines?t=${timestamp}`),
           axios.get(`/api/documents?t=${timestamp}`)
         ]);

@@ -342,6 +342,15 @@ app.get('/api/auth/me', auth, async (req, res) => {
 const mapClient = (row) => ({ id: row.id, userId: row.userid, name: row.name, business: row.business, phone: row.phone, email: row.email, gstin: row.gstin, createdAt: row.createdat });
 
 // Clients (Protected)
+app.get('/api/clients-live', auth, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM clients WHERE userId = $1 ORDER BY createdAt DESC', [req.user.id]);
+    res.json(result.rows.map(mapClient));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 app.get('/api/clients', auth, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM clients WHERE userId = $1 ORDER BY createdAt DESC', [req.user.id]);

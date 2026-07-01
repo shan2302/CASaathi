@@ -43,7 +43,7 @@ export function Dashboard() {
     <div ref={containerRef} style={{ maxWidth: '1200px', margin: '0 auto' }}>
       
       {/* Page Header */}
-      <h1 className="page-title" data-aos="fade-right">Dashboard</h1>
+      <h1 className="page-title" data-aos="fade-right">Dashboard (Live DB)</h1>
       <p className="page-subtitle" data-aos="fade-right" data-aos-delay="100">Overview of your firm's deadlines, clients & document collection.</p>
       
       {/* Stat Cards Grid */}
