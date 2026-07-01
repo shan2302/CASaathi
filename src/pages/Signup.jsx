@@ -69,10 +69,10 @@ export function Signup() {
         setConfirmationResult(confResult);
       }
     } catch (err) {
-      if (err.code === 'auth/invalid-phone-number') {
+      if (err?.code === 'auth/invalid-phone-number') {
         setError('Invalid phone number format. Make sure to include the country code (e.g. +91)');
       } else {
-        setError(err.message || err);
+        setError(typeof err === 'string' ? err : err?.message || 'An error occurred');
       }
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.render().then(widgetId => {
@@ -101,10 +101,10 @@ export function Signup() {
         navigate('/dashboard');
       }
     } catch (err) {
-      if (err.code === 'auth/invalid-verification-code') {
+      if (err?.code === 'auth/invalid-verification-code') {
         setError('Invalid verification code.');
       } else {
-        setError(err.message || err);
+        setError(typeof err === 'string' ? err : err?.message || 'An error occurred');
       }
     } finally {
       setLoading(false);

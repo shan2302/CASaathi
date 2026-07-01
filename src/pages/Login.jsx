@@ -46,7 +46,7 @@ export function Login() {
       await login(identifier, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err);
+      setError(typeof err === 'string' ? err : err?.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ export function Login() {
         setIsOtpSent(true);
       }
     } catch (err) {
-      setError(err.message || err);
+      setError(typeof err === 'string' ? err : err?.message || 'An error occurred');
       if (window.recaptchaVerifierLogin) {
         window.recaptchaVerifierLogin.render().then(widgetId => {
           grecaptcha.reset(widgetId);
@@ -101,10 +101,10 @@ export function Login() {
         navigate('/dashboard');
       }
     } catch (err) {
-      if (err.code === 'auth/invalid-verification-code') {
+      if (err?.code === 'auth/invalid-verification-code') {
         setError('Invalid verification code.');
       } else {
-        setError(err.message || err);
+        setError(typeof err === 'string' ? err : err?.message || 'An error occurred');
       }
     } finally {
       setLoading(false);
