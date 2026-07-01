@@ -21,6 +21,14 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Prevent browser caching of API responses
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+});
+
 // --- Database Connection (PostgreSQL) ---
 if (!process.env.DATABASE_URL && !process.env.MONGO_URI) {
   console.warn('Warning: Neither DATABASE_URL nor MONGO_URI is defined in environment variables.');
@@ -32,6 +40,8 @@ const pool = new pg.Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
 });
+
+
 
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
