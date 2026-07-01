@@ -21,13 +21,12 @@ app.use(cors({
 app.use(express.json());
 
 // --- Database Connection (PostgreSQL) ---
-if (!process.env.MONGO_URI) {
-  // We're keeping MONGO_URI env var check just so we don't break vercel setup, 
-  // but we will use the hardcoded Neon string provided by user.
+if (!process.env.DATABASE_URL && !process.env.MONGO_URI) {
+  console.warn('Warning: Neither DATABASE_URL nor MONGO_URI is defined in environment variables.');
 }
 
 const pool = new pg.Pool({
-  connectionString: 'postgresql://neondb_owner:npg_uYiZqPz72gcp@ep-wispy-recipe-aoh4tbe7-pooler.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+  connectionString: process.env.DATABASE_URL || process.env.MONGO_URI,
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
