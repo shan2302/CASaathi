@@ -1,14 +1,15 @@
-import express from 'express';
-import cors from 'cors';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { createClient } from '@supabase/supabase-js';
-import admin from 'firebase-admin';
-import axios from 'axios';
-import dotenv from 'dotenv';
-import pg from 'pg';
+const express = require('express');
+const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { createClient } = require('@supabase/supabase-js');
+const admin = require('firebase-admin');
+const axios = require('axios');
+const dotenv = require('dotenv');
+const path = require('path');
+const pg = require('pg');
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 
@@ -42,7 +43,7 @@ app.use(async (req, res, next) => {
 });
 
 // --- Firebase Admin Initialization ---
-if (!admin.apps.length) {
+if (!admin.apps || !admin.apps.length) {
   try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
     admin.initializeApp({
@@ -54,9 +55,10 @@ if (!admin.apps.length) {
 }
 
 // --- Supabase Initialization (Storage) ---
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+let supabase;
+if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+  supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+}
 
 // --- Brevo Email/SMS Services ---
 const sendEmail = async (toEmail, toName, subject, htmlContent) => {
@@ -463,15 +465,15 @@ app.post('/api/reminders/send', auth, async (req, res) => {
     
     if (sendMethod === 'email' || sendMethod === 'both') {
       if (clientEmail) {
-        const htmlContent = \`
+        const htmlContent = `
           <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
             <h2>Reminder from CA Saathi</h2>
-            <p>Dear \${clientName || 'Client'},</p>
-            <p>\${message.replace(/\\n/g, '<br/>')}</p>
+            <p>Dear ${clientName || 'Client'},</p>
+            <p>${message.replace(/\n/g, '<br/>')}</p>
             <hr style="margin-top: 30px; border: none; border-top: 1px solid #eee;" />
             <p style="font-size: 12px; color: #888;">This is an automated reminder sent via CA Saathi Practice Management.</p>
           </div>
-        \`;
+        `;
         await sendEmail(clientEmail, clientName || 'Client', subject || 'Important Reminder', htmlContent);
       }
     }
@@ -480,7 +482,7 @@ app.post('/api/reminders/send', auth, async (req, res) => {
     if (sendMethod === 'sms' || sendMethod === 'both') {
       if (clientPhone) {
         try {
-          const smsMessage = \`CA Saathi Reminder: Dear \${clientName || 'Client'}, \${message}\`;
+          const smsMessage = `CA Saathi Reminder: Dear ${clientName || 'Client'}, ${message}`;
           await sendSms(clientPhone, smsMessage);
           smsStatus = 'SMS Sent';
         } catch (e) {
@@ -511,7 +513,7 @@ app.post('/api/storage/upload', auth, async (req, res) => {
     const base64Data = fileData.replace(/^data:.*?;base64,/, "");
     const buffer = Buffer.from(base64Data, 'base64');
     
-    const filePath = \`\${req.user.id}/\${Date.now()}_\${filename}\`;
+    const filePath = `${req.user.id}/${Date.now()}_${filename}`;
     
     const { data, error } = await supabase
       .storage
@@ -538,4 +540,4 @@ app.listen(process.env.PORT || 3000, () => {
   console.log('Serverless Express API (PG) initialized');
 });
 
-export default app;
+module.exports = app;
