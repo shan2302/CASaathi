@@ -28,10 +28,11 @@ export function DataProvider({ children }) {
     const fetchData = async () => {
       setLoading(true);
       try {
+        const timestamp = Date.now();
         const [clientsRes, deadlinesRes, docsRes] = await Promise.all([
-          axios.get('/api/clients'),
-          axios.get('/api/deadlines'),
-          axios.get('/api/documents')
+          axios.get(`/api/clients?t=${timestamp}`),
+          axios.get(`/api/deadlines?t=${timestamp}`),
+          axios.get(`/api/documents?t=${timestamp}`)
         ]);
         setClients(clientsRes.data);
         setDeadlines(deadlinesRes.data);
