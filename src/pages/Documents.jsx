@@ -61,7 +61,7 @@ export function Documents() {
       {/* Documents Grid */}
       <div className="form-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
         {documents.map((docGroup, index) => (
-          <div key={docGroup._id} data-aos="fade-up" data-aos-delay={index * 100} className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+          <div key={docGroup.id || docGroup._id} data-aos="fade-up" data-aos-delay={index * 100} className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
             
             {/* Card Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
