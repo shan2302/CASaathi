@@ -723,4 +723,19 @@ input:checked + .slider:before {
   .feature-grid {
     grid-template-columns: 1fr !important;
   }
+  .about-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+  .testimonial-flex {
+    flex-direction: column !important;
+    text-align: center;
+    gap: 1.5rem !important;
+  }
+  .testimonial-flex .avatar-container {
+    margin: 0 auto;
+  }
+  .testimonial-flex p {
+    justify-content: center !important;
+  }
 }

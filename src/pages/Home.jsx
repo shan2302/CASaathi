@@ -145,7 +145,7 @@ export function Home() {
           <h2 style={{ textAlign: 'center', fontSize: '2.5rem', fontWeight: 700, color: '#1e3a8a', marginBottom: '4rem' }}>
             About Us
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
+          <div className="about-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
             <div>
               <h3 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#2563eb', marginBottom: '1rem' }}>Our Mission</h3>
               <p style={{ color: '#475569', lineHeight: 1.7, marginBottom: '2rem', fontSize: '1.05rem' }}>
@@ -195,7 +195,7 @@ export function Home() {
           zIndex: 1
         }}></div>
 
-        <div style={{ 
+        <div className="testimonial-flex" style={{ 
           position: 'relative', 
           zIndex: 2, 
           maxWidth: '1200px', 
@@ -205,7 +205,7 @@ export function Home() {
           gap: '3rem'
         }}>
           {/* Avatar floating in the soft blue circle */}
-          <div style={{
+          <div className="avatar-container" style={{
              position: 'relative',
              width: '240px',
              height: '240px',
