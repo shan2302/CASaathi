@@ -94,16 +94,15 @@ if (!process.env.MONGO_URI) {
   console.error("CRITICAL ERROR: MONGO_URI is missing from environment variables.");
 }
 
-let isConnected = false;
 const connectDB = async () => {
-  if (isConnected) {
+  // Use Mongoose's internal readyState to check if we are actually connected
+  if (mongoose.connection.readyState >= 1) {
     return;
   }
   try {
-    const db = await mongoose.connect(process.env.MONGO_URI, {
+    await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 5000 // Fail fast if IP is blocked
     });
-    isConnected = db.connections[0].readyState === 1;
     console.log('Connected to MongoDB Atlas');
   } catch (err) {
     console.error('Error connecting to MongoDB:', err);
