@@ -89,15 +89,37 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- Database Connection ---
+// --- Database Connection (Serverless Optimized) ---
 if (!process.env.MONGO_URI) {
   console.error("CRITICAL ERROR: MONGO_URI is missing from environment variables.");
-  process.exit(1);
 }
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Connected to MongoDB Atlas'))
-  .catch((err) => console.error('Error connecting to MongoDB:', err));
+let isConnected = false;
+const connectDB = async () => {
+  if (isConnected) {
+    return;
+  }
+  try {
+    const db = await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 5000 // Fail fast if IP is blocked
+    });
+    isConnected = db.connections[0].readyState === 1;
+    console.log('Connected to MongoDB Atlas');
+  } catch (err) {
+    console.error('Error connecting to MongoDB:', err);
+    throw err;
+  }
+};
+
+// Add middleware to ensure DB connection on every request
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(500).json({ message: "Database connection failed. Please check MongoDB IP Whitelist." });
+  }
+});
 
 // --- Mongoose Models ---
 const UserSchema = new mongoose.Schema({

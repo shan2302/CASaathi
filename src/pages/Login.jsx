@@ -113,11 +113,7 @@ export function Login() {
 
   return (
     <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
-      <div style={{
-        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-        backgroundImage: 'url("/auth-bg.png")', backgroundSize: 'cover', backgroundPosition: 'center',
-        opacity: 0.8, zIndex: 0, pointerEvents: 'none'
-      }}></div>
+      <div className="auth-premium-bg"></div>
 
       <PublicNavbar />
 
