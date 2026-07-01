@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from './AuthContext';
 
 const DataContext = createContext();
 
@@ -8,14 +9,24 @@ export function useData() {
 }
 
 export function DataProvider({ children }) {
+  const { user, token } = useAuth();
   const [clients, setClients] = useState([]);
   const [deadlines, setDeadlines] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch initial data
+  // Fetch data whenever user authentication changes
   useEffect(() => {
+    if (!token || !user) {
+      setClients([]);
+      setDeadlines([]);
+      setDocuments([]);
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [clientsRes, deadlinesRes, docsRes] = await Promise.all([
           axios.get('/api/clients'),
@@ -32,7 +43,7 @@ export function DataProvider({ children }) {
       }
     };
     fetchData();
-  }, []);
+  }, [user, token]);
 
   // Helper to calculate deadline status
   const calculateStatus = (dueDateStr) => {
