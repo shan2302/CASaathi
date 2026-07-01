@@ -30,12 +30,14 @@ app.use((req, res, next) => {
 });
 
 // --- Database Connection (PostgreSQL) ---
-if (!process.env.DATABASE_URL && !process.env.MONGO_URI) {
-  console.warn('Warning: Neither DATABASE_URL nor MONGO_URI is defined in environment variables.');
-}
+const NEON_FALLBACK = 'postgresql://neondb_owner:npg_uYiZqPz72gcp@ep-wispy-recipe-aoh4tbe7-pooler.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+
+const connectionString = process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('postgres') 
+  ? process.env.DATABASE_URL 
+  : NEON_FALLBACK;
 
 const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL || process.env.MONGO_URI,
+  connectionString: connectionString,
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
