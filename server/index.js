@@ -303,7 +303,16 @@ app.post('/api/auth/reset-password', async (req, res) => {
 app.get('/api/auth/me', auth, async (req, res) => {
   try {
     const userResult = await pool.query('SELECT id, name, email, phone, firmname, isverified FROM users WHERE id = $1', [req.user.id]);
-    res.json(userResult.rows[0]);
+    const user = userResult.rows[0];
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ 
+      id: user.id, 
+      name: user.name, 
+      email: user.email, 
+      phone: user.phone, 
+      firmName: user.firmname, 
+      isVerified: user.isverified 
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
