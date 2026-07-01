@@ -34,11 +34,16 @@ export function DataProvider({ children }) {
           axios.get(`/api/deadlines?t=${timestamp}`),
           axios.get(`/api/documents?t=${timestamp}`)
         ]);
-        setClients(clientsRes.data);
+        if (clientsRes.data.length === 0) {
+          setClients([{ id: 'debug', name: `DEBUG: 0 clients. Token: ${token.substring(0,10)}... UserID: ${user?.id}` }]);
+        } else {
+          setClients(clientsRes.data);
+        }
         setDeadlines(deadlinesRes.data);
         setDocuments(docsRes.data);
       } catch (err) {
         console.error("Failed to fetch data:", err);
+        setClients([{ id: 'debug', name: `FETCH ERROR: ${err.message}` }]);
       } finally {
         setLoading(false);
       }
