@@ -42,18 +42,21 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   const login = async (identifier, password) => {
-    // identifier can be email or phone
-    const email = identifier.includes('@') ? identifier : undefined;
-    const phone = !identifier.includes('@') ? identifier : undefined;
-    
-    const payload = { password };
-    if (email) payload.email = email;
-    if (phone) payload.phone = phone;
+    try {
+      const email = identifier.includes('@') ? identifier : undefined;
+      const phone = !identifier.includes('@') ? identifier : undefined;
+      
+      const payload = { password };
+      if (email) payload.email = email;
+      if (phone) payload.phone = phone;
 
-    const res = await axios.post('/api/auth/login', payload);
-    localStorage.setItem('token', res.data.token);
-    setToken(res.data.token);
-    setUser(res.data.user);
+      const res = await axios.post('/api/auth/login', payload);
+      localStorage.setItem('token', res.data.token);
+      setToken(res.data.token);
+      setUser(res.data.user);
+    } catch (error) {
+      throw error.response?.data?.message || 'Error logging in';
+    }
   };
 
   const signup = async (name, email, phone, password, firmName) => {
