@@ -703,4 +703,24 @@ input:checked + .slider:before {
   .page-title {
     font-size: 1.5rem;
   }
+  
+  /* Landing Page Responsiveness */
+  .hero-section {
+    flex-direction: column !important;
+    padding-top: 2rem !important;
+    text-align: center;
+  }
+  .hero-title {
+    font-size: 2.25rem !important;
+  }
+  .hero-subtitle {
+    font-size: 1.1rem !important;
+    margin: 0 auto 2rem auto !important;
+  }
+  .hero-img-container {
+    margin-top: 2rem;
+  }
+  .feature-grid {
+    grid-template-columns: 1fr !important;
+  }
 }

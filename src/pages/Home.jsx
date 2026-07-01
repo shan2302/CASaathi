@@ -47,12 +47,12 @@ export function Home() {
       <PublicNavbar />
 
       {/* Hero Section */}
-      <section style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4rem 5% 8rem 5%', position: 'relative', zIndex: 2 }}>
+      <section className="hero-section" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4rem 5% 8rem 5%', position: 'relative', zIndex: 2 }}>
         <div style={{ flex: '1 1 45%', maxWidth: '600px' }}>
-          <h1 className="hero-text" style={{ fontSize: '3.75rem', fontWeight: 800, color: '#1e3a8a', lineHeight: 1.15, marginBottom: '1.5rem', letterSpacing: '-0.02em' }}>
+          <h1 className="hero-text hero-title" style={{ fontSize: '3.75rem', fontWeight: 800, color: '#1e3a8a', lineHeight: 1.15, marginBottom: '1.5rem', letterSpacing: '-0.02em' }}>
             Streamline Your Accounting Practice
           </h1>
-          <p className="hero-text" style={{ fontSize: '1.25rem', color: '#475569', marginBottom: '3rem', maxWidth: '500px', lineHeight: 1.6 }}>
+          <p className="hero-text hero-subtitle" style={{ fontSize: '1.25rem', color: '#475569', marginBottom: '3rem', maxWidth: '500px', lineHeight: 1.6 }}>
             Automate reminders and manage clients with ease.
           </p>
           {user ? (
@@ -65,7 +65,7 @@ export function Home() {
             </Link>
           )}
         </div>
-        <div className="hero-img" style={{ flex: '1 1 55%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+        <div className="hero-img hero-img-container" style={{ flex: '1 1 55%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
            <img 
               src="/hero-illustration.png" 
               alt="CA Saathi Dashboard Illustration" 
@@ -92,7 +92,7 @@ export function Home() {
           Key Features of CA Saathi
         </h2>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
+        <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
           {/* Feature 1 */}
           <div className="feature-card" style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem', padding: '2rem', borderRadius: '12px', backgroundColor: 'white', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -4px rgba(0,0,0,0.02)', transition: 'transform 0.2s', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
             <div style={{ color: '#2563eb' }}>
