@@ -12,12 +12,14 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
 
-  // Set default axios header if token exists
-  if (token) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  } else {
-    delete axios.defaults.headers.common['Authorization'];
-  }
+  // Keep axios in sync with the current auth token.
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+    }
+  }, [token]);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -153,7 +155,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{ 
-      user, loading, login, signup, verifyEmail, logout,
+      user, token, loading, login, signup, verifyEmail, logout,
       loginOtpSend, loginOtpVerify, forgotPassword, resetPassword, firebaseAuthVerify
     }}>
       {children}

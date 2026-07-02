@@ -345,9 +345,7 @@ const mapClient = (row) => ({ id: row.id, userId: row.userid, name: row.name, bu
 app.get('/api/clients-live', auth, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM clients WHERE userId = $1 ORDER BY createdAt DESC', [req.user.id]);
-    const clients = result.rows.map(mapClient);
-    clients.push({ id: 'hardcoded', name: 'HARDCODED TEST CLIENT', business: 'If you see this, you are on the new code' });
-    res.json(clients);
+    res.json(result.rows.map(mapClient));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 
@@ -14,6 +14,9 @@ export function DataProvider({ children }) {
   const [deadlines, setDeadlines] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const authConfig = useMemo(() => ({
+    headers: { Authorization: `Bearer ${token}` }
+  }), [token]);
 
   // Fetch data whenever user authentication changes
   useEffect(() => {
@@ -38,26 +41,24 @@ export function DataProvider({ children }) {
       try {
         const timestamp = Date.now();
         const [clientsRes, deadlinesRes, docsRes] = await Promise.all([
-          axios.get(`/api/clients-live?t=${timestamp}`),
-          axios.get(`/api/deadlines?t=${timestamp}`),
-          axios.get(`/api/documents?t=${timestamp}`)
+          axios.get(`/api/clients?t=${timestamp}`, authConfig),
+          axios.get(`/api/deadlines?t=${timestamp}`, authConfig),
+          axios.get(`/api/documents?t=${timestamp}`, authConfig)
         ]);
-        if (clientsRes.data.length === 0) {
-          setClients([{ id: 'debug', name: `DEBUG: 0 clients. Token: ${token.substring(0,10)}... UserID: ${user?.id}` }]);
-        } else {
-          setClients(clientsRes.data);
-        }
+        setClients(clientsRes.data);
         setDeadlines(deadlinesRes.data);
         setDocuments(docsRes.data);
       } catch (err) {
         console.error("Failed to fetch data:", err);
-        setClients([{ id: 'debug', name: `FETCH ERROR: ${err.message}` }]);
+        setClients([]);
+        setDeadlines([]);
+        setDocuments([]);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [user, token]);
+  }, [user, token, authConfig]);
 
   // Helper to calculate deadline status
   const calculateStatus = (dueDateStr) => {
@@ -84,7 +85,7 @@ export function DataProvider({ children }) {
 
     try {
       // 1. Save Client
-      const clientRes = await axios.post('/api/clients', newClientData);
+      const clientRes = await axios.post('/api/clients', newClientData, authConfig);
       const savedClient = clientRes.data;
       
       // Replace optimistic client with the real one from DB
@@ -102,7 +103,7 @@ export function DataProvider({ children }) {
           status: calculateStatus(initialDeadlineData.dueDate)
         };
         promises.push(
-          axios.post('/api/deadlines', deadlinePayload).then(res => {
+          axios.post('/api/deadlines', deadlinePayload, authConfig).then(res => {
             setDeadlines(prev => [res.data, ...prev]);
           })
         );
@@ -122,7 +123,7 @@ export function DataProvider({ children }) {
       };
       
       promises.push(
-        axios.post('/api/documents', docPayload).then(res => {
+        axios.post('/api/documents', docPayload, authConfig).then(res => {
           setDocuments(prev => [res.data, ...prev]);
         })
       );
@@ -149,7 +150,7 @@ export function DataProvider({ children }) {
         status: calculateStatus(newDeadlineData.dueDate)
       };
       
-      const res = await axios.post('/api/deadlines', payload);
+      const res = await axios.post('/api/deadlines', payload, authConfig);
       setDeadlines(prev => [res.data, ...prev]);
     } catch (err) {
       console.error("Error adding deadline:", err);
@@ -161,7 +162,7 @@ export function DataProvider({ children }) {
       const clientToRemove = clients.find(c => (c._id || c.id) === clientId);
       if (!clientToRemove) return;
       
-      await axios.post(`/api/clients/delete/${clientId}`);
+      await axios.post(`/api/clients/delete/${clientId}`, null, authConfig);
       
       setClients(prev => prev.filter(c => (c._id || c.id) !== clientId));
       setDeadlines(prev => prev.filter(d => d.clientName !== clientToRemove.name));
@@ -173,7 +174,7 @@ export function DataProvider({ children }) {
 
   const removeDeadline = async (deadlineId) => {
     try {
-      await axios.post(`/api/deadlines/delete/${deadlineId}`);
+      await axios.post(`/api/deadlines/delete/${deadlineId}`, null, authConfig);
       setDeadlines(prev => prev.filter(d => (d._id || d.id) !== deadlineId));
     } catch (err) {
       console.error("Error removing deadline:", err);
@@ -182,7 +183,7 @@ export function DataProvider({ children }) {
 
   const editClient = async (clientId, updatedData) => {
     try {
-      const res = await axios.post(`/api/clients/update/${clientId}`, updatedData);
+      const res = await axios.put(`/api/clients/${clientId}`, updatedData, authConfig);
       setClients(prev => prev.map(c => (c._id || c.id) === clientId ? res.data : c));
       
       // Update associated documents and deadlines with the new name if it changed
@@ -201,7 +202,7 @@ export function DataProvider({ children }) {
       if (updatedData.dueDate) {
         updatedData.status = calculateStatus(updatedData.dueDate);
       }
-      const res = await axios.post(`/api/deadlines/update/${deadlineId}`, updatedData);
+      const res = await axios.put(`/api/deadlines/${deadlineId}`, updatedData, authConfig);
       setDeadlines(prev => prev.map(d => (d._id || d.id) === deadlineId ? res.data : d));
     } catch (err) {
       console.error("Error editing deadline:", err);
