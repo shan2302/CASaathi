@@ -19,6 +19,17 @@ export function DataProvider({ children }) {
     headers: { Authorization: `Bearer ${token}` }
   }), [token]);
 
+  const normalizeDocumentGroup = useCallback((docGroup) => {
+    const docs = Array.isArray(docGroup.docs) ? docGroup.docs : [];
+    const pendingCount = docs.filter(doc => doc.status !== 'Received').length;
+
+    return {
+      ...docGroup,
+      docs,
+      pendingCount
+    };
+  }, []);
+
   // Helper to calculate deadline status
   const calculateStatus = useCallback((dueDateStr) => {
     const today = new Date();
@@ -68,7 +79,7 @@ export function DataProvider({ children }) {
           ...deadline,
           status: calculateStatus(deadline.dueDate)
         })));
-        setDocuments(docsRes.data);
+        setDocuments(docsRes.data.map(normalizeDocumentGroup));
       } catch (err) {
         console.error("Failed to fetch data:", err);
         setClients([]);
@@ -79,7 +90,7 @@ export function DataProvider({ children }) {
       }
     };
     fetchData();
-  }, [user, token, authConfig, calculateStatus]);
+  }, [user, token, authConfig, calculateStatus, normalizeDocumentGroup]);
 
   const addClient = async (newClientData, initialDeadlineData) => {
     // Optimistic UI Update: Create a temporary ID and add it immediately
@@ -129,7 +140,7 @@ export function DataProvider({ children }) {
       
       promises.push(
         axios.post('/api/documents', docPayload, authConfig).then(res => {
-          setDocuments(prev => [res.data, ...prev]);
+          setDocuments(prev => [normalizeDocumentGroup(res.data), ...prev]);
         })
       );
 
@@ -214,6 +225,39 @@ export function DataProvider({ children }) {
     }
   };
 
+  const updateDocumentStatus = async (documentGroupId, docIndex, nextStatus) => {
+    const currentGroup = documents.find(docGroup => (docGroup._id || docGroup.id) === documentGroupId);
+    if (!currentGroup) return;
+
+    const updatedDocs = currentGroup.docs.map((doc, index) => (
+      index === docIndex ? { ...doc, status: nextStatus } : doc
+    ));
+    const pendingCount = updatedDocs.filter(doc => doc.status !== 'Received').length;
+    const optimisticGroup = normalizeDocumentGroup({ ...currentGroup, docs: updatedDocs, pendingCount });
+
+    setDocuments(prev => prev.map(docGroup => (
+      (docGroup._id || docGroup.id) === documentGroupId ? optimisticGroup : docGroup
+    )));
+
+    try {
+      const res = await axios.put(
+        `/api/documents/${documentGroupId}`,
+        { docs: updatedDocs, pendingCount },
+        authConfig
+      );
+
+      setDocuments(prev => prev.map(docGroup => (
+        (docGroup._id || docGroup.id) === documentGroupId ? normalizeDocumentGroup(res.data) : docGroup
+      )));
+    } catch (err) {
+      console.error("Error updating document status:", err);
+      setDocuments(prev => prev.map(docGroup => (
+        (docGroup._id || docGroup.id) === documentGroupId ? normalizeDocumentGroup(currentGroup) : docGroup
+      )));
+      throw err;
+    }
+  };
+
   const value = {
     clients,
     deadlines,
@@ -224,7 +268,8 @@ export function DataProvider({ children }) {
     addDeadline,
     removeDeadline,
     editClient,
-    editDeadline
+    editDeadline,
+    updateDocumentStatus
   };
 
   return (

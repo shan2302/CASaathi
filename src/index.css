@@ -411,6 +411,11 @@ input:checked + .slider:before {
   border: 1px solid transparent;
 }
 
+.doc-badge:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .doc-badge-pending {
   color: var(--text-secondary);
   border-color: var(--border);

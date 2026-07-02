@@ -1,12 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Search, CheckCircle2, Clock } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { useToast } from '../context/ToastContext';
 
 export function Documents() {
-  const { documents } = useData();
+  const { documents, updateDocumentStatus } = useData();
+  const { addToast } = useToast();
+  const [updatingDocumentKey, setUpdatingDocumentKey] = useState(null);
 
   // Calculate total pending docs across all clients
-  const totalPendingDocs = documents.reduce((sum, client) => sum + client.pendingCount, 0);
+  const totalPendingDocs = documents.reduce((sum, client) => sum + (client.pendingCount || 0), 0);
+
+  const handleDocumentStatusToggle = async (docGroup, docIndex, currentStatus) => {
+    const documentGroupId = docGroup._id || docGroup.id;
+    const nextStatus = currentStatus === 'Received' ? 'Pending' : 'Received';
+    const updateKey = `${documentGroupId}-${docIndex}`;
+
+    setUpdatingDocumentKey(updateKey);
+    try {
+      await updateDocumentStatus(documentGroupId, docIndex, nextStatus);
+      addToast(`Document marked ${nextStatus.toLowerCase()}`, 'success');
+    } catch (err) {
+      addToast('Failed to update document status', 'error');
+    } finally {
+      setUpdatingDocumentKey(null);
+    }
+  };
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -90,12 +109,20 @@ export function Documents() {
                   </div>
                   
                   {doc.status === 'Received' ? (
-                    <button className="doc-badge doc-badge-pending">
-                      Mark Pending
+                    <button
+                      className="doc-badge doc-badge-pending"
+                      disabled={updatingDocumentKey === `${docGroup._id || docGroup.id}-${index}`}
+                      onClick={() => handleDocumentStatusToggle(docGroup, index, doc.status)}
+                    >
+                      {updatingDocumentKey === `${docGroup._id || docGroup.id}-${index}` ? 'Saving...' : 'Mark Pending'}
                     </button>
                   ) : (
-                    <button className="doc-badge doc-badge-received">
-                      Mark Received
+                    <button
+                      className="doc-badge doc-badge-received"
+                      disabled={updatingDocumentKey === `${docGroup._id || docGroup.id}-${index}`}
+                      onClick={() => handleDocumentStatusToggle(docGroup, index, doc.status)}
+                    >
+                      {updatingDocumentKey === `${docGroup._id || docGroup.id}-${index}` ? 'Saving...' : 'Mark Received'}
                     </button>
                   )}
                 </div>

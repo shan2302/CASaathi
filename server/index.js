@@ -470,7 +470,33 @@ app.post('/api/deadlines/delete/:id', auth, async (req, res) => {
   }
 });
 
-const mapDocument = (row) => ({ id: row.id, userId: row.userid, clientName: row.clientname, business: row.business, pendingCount: row.pendingcount, docs: row.docs, createdAt: row.createdat });
+const parseDocumentList = (docs) => {
+  if (Array.isArray(docs)) return docs;
+  if (typeof docs === 'string') {
+    try {
+      const parsed = JSON.parse(docs);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      return [];
+    }
+  }
+  return [];
+};
+
+const mapDocument = (row) => {
+  const docs = parseDocumentList(row.docs);
+  const pendingCount = docs.filter(doc => doc.status !== 'Received').length;
+
+  return {
+    id: row.id,
+    userId: row.userid,
+    clientName: row.clientname,
+    business: row.business,
+    pendingCount,
+    docs,
+    createdAt: row.createdat
+  };
+};
 
 // Documents (Protected)
 app.get('/api/documents', auth, async (req, res) => {
@@ -502,7 +528,9 @@ app.put('/api/documents/:id', auth, async (req, res) => {
       'UPDATE documents SET docs = $1, pendingCount = $2 WHERE id = $3 AND userId = $4 RETURNING *',
       [JSON.stringify(docs), pendingCount, req.params.id, req.user.id]
     );
-    res.json(mapDocument(updateResult.rows[0]));
+    const documentGroup = updateResult.rows[0];
+    if (!documentGroup) return res.status(404).json({ message: 'Document group not found' });
+    res.json(mapDocument(documentGroup));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
