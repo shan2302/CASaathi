@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { Settings as SettingsIcon, PlaySquare, Building, Save } from 'lucide-react';
+import { Settings as SettingsIcon, PlaySquare, Building, Save, MonitorPlay } from 'lucide-react';
+import { DemoVideo } from '../components/DemoVideo';
 
 export function Settings() {
   const { settings, updateSettings } = useSettings();
@@ -10,6 +11,8 @@ export function Settings() {
   const { addToast } = useToast();
   const [firmNameDraft, setFirmNameDraft] = useState(settings.firmName || '');
   const [isSavingFirmName, setIsSavingFirmName] = useState(false);
+  const [isDemoVideoOpen, setIsDemoVideoOpen] = useState(false);
+  const [isDemoPaused, setIsDemoPaused] = useState(false);
 
   useEffect(() => {
     setFirmNameDraft(settings.firmName || '');
@@ -39,6 +42,14 @@ export function Settings() {
       addToast(typeof error === 'string' ? error : 'Failed to update firm name', 'error');
     } finally {
       setIsSavingFirmName(false);
+    }
+  };
+
+  const handleDemoModeChange = (enabled) => {
+    updateSettings({ demoMode: enabled });
+    if (enabled) {
+      setIsDemoPaused(false);
+      setIsDemoVideoOpen(true);
     }
   };
 
@@ -76,10 +87,23 @@ export function Settings() {
               <input 
                 type="checkbox" 
                 checked={settings.demoMode}
-                onChange={(e) => updateSettings({ demoMode: e.target.checked })}
+                onChange={(e) => handleDemoModeChange(e.target.checked)}
               />
               <span className="slider"></span>
             </label>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-1.25rem' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                setIsDemoPaused(false);
+                setIsDemoVideoOpen(true);
+              }}
+            >
+              <MonitorPlay size={16} /> Watch Demo
+            </button>
           </div>
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--border)' }} />
@@ -131,6 +155,13 @@ export function Settings() {
 
         </div>
       </div>
+
+      <DemoVideo
+        isOpen={isDemoVideoOpen}
+        isPaused={isDemoPaused}
+        onClose={() => setIsDemoVideoOpen(false)}
+        onTogglePause={() => setIsDemoPaused(prev => !prev)}
+      />
     </div>
   );
 }
