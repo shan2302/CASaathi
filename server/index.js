@@ -448,12 +448,14 @@ app.post('/api/deadlines', auth, async (req, res) => {
 
 app.put('/api/deadlines/:id', auth, async (req, res) => {
   try {
-    const { status, dueDate } = req.body;
+    const { type, status, dueDate } = req.body;
     const updateResult = await pool.query(
-      'UPDATE deadlines SET status = $1, dueDate = $2 WHERE id = $3 AND userId = $4 RETURNING *',
-      [status, dueDate, req.params.id, req.user.id]
+      'UPDATE deadlines SET type = COALESCE($1, type), status = $2, dueDate = $3 WHERE id = $4 AND userId = $5 RETURNING *',
+      [type || null, status, dueDate, req.params.id, req.user.id]
     );
-    res.json(mapDeadline(updateResult.rows[0]));
+    const deadline = updateResult.rows[0];
+    if (!deadline) return res.status(404).json({ message: 'Deadline not found' });
+    res.json(mapDeadline(deadline));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -657,3 +659,4 @@ app.listen(process.env.PORT || 3000, () => {
 });
 
 module.exports = app;
+

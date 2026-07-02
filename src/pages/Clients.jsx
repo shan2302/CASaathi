@@ -218,9 +218,9 @@ export function Clients() {
                   {!editingClient && (
                     <>
                       <div className="form-group">
-                        <label className="form-label">Initial Deadline Type</label>
-                        <select name="deadlineType" className="form-input" style={{ backgroundColor: 'white' }}>
-                          <option value="">None</option>
+                        <label className="form-label">Initial Deadline Type *</label>
+                        <select name="deadlineType" className="form-input" style={{ backgroundColor: 'white' }} required defaultValue="">
+                          <option value="" disabled>Select type...</option>
                           <option value="GST Return">GST Return</option>
                           <option value="TDS Filing">TDS Filing</option>
                           <option value="ITR Filing">ITR Filing</option>
@@ -228,8 +228,8 @@ export function Clients() {
                         </select>
                       </div>
                       <div className="form-group">
-                        <label className="form-label">Initial Due Date</label>
-                        <input type="date" name="dueDate" className="form-input" />
+                        <label className="form-label">Initial Due Date *</label>
+                        <input type="date" name="dueDate" className="form-input" required />
                       </div>
                     </>
                   )}
@@ -258,3 +258,4 @@ export function Clients() {
     </div>
   );
 }
+
