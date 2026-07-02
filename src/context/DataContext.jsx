@@ -25,6 +25,14 @@ export function DataProvider({ children }) {
       return;
     }
 
+    // Force logout if token is from old MongoDB (not a UUID)
+    if (user && user.id && !user.id.includes('-')) {
+      console.log('Old token detected, forcing logout...');
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+      return;
+    }
+
     const fetchData = async () => {
       setLoading(true);
       try {
