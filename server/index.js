@@ -339,6 +339,25 @@ app.get('/api/auth/me', auth, async (req, res) => {
   }
 });
 
+app.put('/api/auth/me/firm-name', auth, async (req, res) => {
+  try {
+    const firmName = (req.body.firmName || '').trim();
+    if (!firmName) return res.status(400).json({ message: 'Firm name is required' });
+
+    const updateResult = await pool.query(
+      'UPDATE users SET firmName = $1 WHERE id = $2 RETURNING id, firmname',
+      [firmName, req.user.id]
+    );
+
+    const user = updateResult.rows[0];
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json({ id: user.id, firmName: user.firmname });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 const mapClient = (row) => ({ id: row.id, userId: row.userid, name: row.name, business: row.business, phone: row.phone, email: row.email, gstin: row.gstin, createdAt: row.createdat });
 
 // Clients (Protected)

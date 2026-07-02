@@ -20,7 +20,7 @@ export function Sidebar({ isOpen, onClose }) {
   return (
     <>
       {isOpen && <div className="sidebar-overlay show-on-mobile" onClick={onClose}></div>}
-      <aside className={`sidebar ${isOpen ? 'mobile-open' : ''}`} style={{ position: 'relative', height: '100vh', borderRight: 'none' }}>
+      <aside className={`sidebar ${isOpen ? 'mobile-open' : ''}`}>
       
       {/* Logo Section */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1.5rem', marginBottom: '1rem' }}>
@@ -62,7 +62,7 @@ export function Sidebar({ isOpen, onClose }) {
       </nav>
 
       {/* Footer */}
-      <div style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem', right: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', color: 'var(--text-sidebar)' }}>
+      <div className="sidebar-footer">
         <span style={{ fontSize: '0.75rem' }}>v1.0 - MVP</span>
         <span style={{ fontSize: '0.75rem' }}>© CA Saathi</span>
       </div>

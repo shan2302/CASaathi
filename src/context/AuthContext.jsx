@@ -146,6 +146,16 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateFirmName = async (firmName) => {
+    try {
+      const res = await axios.put('/api/auth/me/firm-name', { firmName });
+      setUser(prev => prev ? { ...prev, firmName: res.data.firmName } : prev);
+      return res.data;
+    } catch (error) {
+      throw error.response?.data?.message || 'Failed to update firm name';
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
@@ -156,7 +166,8 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{ 
       user, token, loading, login, signup, verifyEmail, logout,
-      loginOtpSend, loginOtpVerify, forgotPassword, resetPassword, firebaseAuthVerify
+      loginOtpSend, loginOtpVerify, forgotPassword, resetPassword, firebaseAuthVerify,
+      updateFirmName
     }}>
       {children}
     </AuthContext.Provider>

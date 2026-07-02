@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
+import { parse, isValid } from 'date-fns';
 import { useAuth } from './AuthContext';
 
 const DataContext = createContext();
@@ -17,6 +18,23 @@ export function DataProvider({ children }) {
   const authConfig = useMemo(() => ({
     headers: { Authorization: `Bearer ${token}` }
   }), [token]);
+
+  // Helper to calculate deadline status
+  const calculateStatus = useCallback((dueDateStr) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const parsedDate = parse(dueDateStr || '', 'dd MMM yyyy', new Date());
+    const dueDate = isValid(parsedDate) ? parsedDate : new Date(dueDateStr);
+    
+    if (isNaN(dueDate.getTime())) return 'Safe'; // fallback
+
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return 'Overdue';
+    if (diffDays <= 7) return 'Due Soon';
+    return 'Safe';
+  }, []);
 
   // Fetch data whenever user authentication changes
   useEffect(() => {
@@ -46,7 +64,10 @@ export function DataProvider({ children }) {
           axios.get(`/api/documents?t=${timestamp}`, authConfig)
         ]);
         setClients(clientsRes.data);
-        setDeadlines(deadlinesRes.data);
+        setDeadlines(deadlinesRes.data.map(deadline => ({
+          ...deadline,
+          status: calculateStatus(deadline.dueDate)
+        })));
         setDocuments(docsRes.data);
       } catch (err) {
         console.error("Failed to fetch data:", err);
@@ -58,23 +79,7 @@ export function DataProvider({ children }) {
       }
     };
     fetchData();
-  }, [user, token, authConfig]);
-
-  // Helper to calculate deadline status
-  const calculateStatus = (dueDateStr) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dueDate = new Date(dueDateStr);
-    
-    if (isNaN(dueDate.getTime())) return 'Safe'; // fallback
-
-    const diffTime = dueDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) return 'Overdue';
-    if (diffDays <= 7) return 'Due Soon';
-    return 'Safe';
-  };
+  }, [user, token, authConfig, calculateStatus]);
 
   const addClient = async (newClientData, initialDeadlineData) => {
     // Optimistic UI Update: Create a temporary ID and add it immediately

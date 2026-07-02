@@ -3,6 +3,7 @@ import { Users, CalendarDays, FileText, BellRing, ArrowRight } from 'lucide-reac
 import { useReminders } from '../context/ReminderContext';
 import { useData } from '../context/DataContext';
 import { Link } from 'react-router-dom';
+import { parse, isValid } from 'date-fns';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -24,8 +25,17 @@ export function Dashboard() {
     );
   }, { scope: containerRef });
 
-  // Upcoming deadlines (first 5 for dashboard)
-  const upcomingDeadlines = deadlines.filter(d => d.status === 'Overdue' || d.status === 'Due Soon').slice(0, 5);
+  const parseDeadlineDate = (dueDate) => {
+    const parsed = parse(dueDate || '', 'dd MMM yyyy', new Date());
+    if (isValid(parsed)) return parsed;
+    const fallback = new Date(dueDate);
+    return Number.isNaN(fallback.getTime()) ? new Date(8640000000000000) : fallback;
+  };
+
+  // Next deadlines across all statuses, including future "Safe" deadlines.
+  const upcomingDeadlines = [...deadlines]
+    .sort((a, b) => parseDeadlineDate(a.dueDate) - parseDeadlineDate(b.dueDate))
+    .slice(0, 5);
 
   const getStatusBadge = (status) => {
     switch(status) {
@@ -43,7 +53,7 @@ export function Dashboard() {
     <div ref={containerRef} style={{ maxWidth: '1200px', margin: '0 auto' }}>
       
       {/* Page Header */}
-      <h1 className="page-title" data-aos="fade-right">Dashboard (Live DB)</h1>
+      <h1 className="page-title" data-aos="fade-right">Dashboard</h1>
       <p className="page-subtitle" data-aos="fade-right" data-aos-delay="100">Overview of your firm's deadlines, clients & document collection.</p>
       
       {/* Stat Cards Grid */}
@@ -67,7 +77,7 @@ export function Dashboard() {
           </div>
           <div>
             <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.05em' }}>UPCOMING DEADLINES</p>
-            <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{deadlines.filter(d => d.status !== 'Safe').length}</h3>
+            <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{deadlines.length}</h3>
           </div>
         </div>
 
